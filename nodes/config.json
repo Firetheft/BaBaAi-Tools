@@ -1,0 +1,7 @@
+{
+    "GEMINI_API_KEY": "",
+    "ZHIPUAI_API_KEY": "",
+    "from_translate": "zh",
+    "to_translate": "en",
+    "PROXY": ""
+}

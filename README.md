@@ -1,0 +1,1 @@
+I'm too lazy to write any usage documentation for now, because this is just a self-use tool. Of course, the nodes are very simple, referring to other people's code and rewriting some of it myself. It's safe if you want to play with it.

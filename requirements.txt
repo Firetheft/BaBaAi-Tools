@@ -1,0 +1,15 @@
+transformers
+torch
+tqdm
+huggingface_hub
+torchvision
+numpy>=1.21.0
+Pillow>=10.1.0
+google-generativeai
+colornamer==0.2.3
+scikit_learn>=1.4.0
+webcolors==1.13
+zhipuai
+googletrans-py
+qwen-vl-utils
+qwen-vl-utils[decord]
