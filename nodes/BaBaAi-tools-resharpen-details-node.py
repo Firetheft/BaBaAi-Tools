@@ -58,10 +58,10 @@ def hijack(PREP) -> Callable:
         @wraps(original_callback)
         def hijack_callback(step, x0, x, total_steps):
 
+            global LATENT_CACHE, RESHARPEN_SCALING_ALG, RESHARPEN_STRENGTH
+
             if not RESHARPEN_STRENGTH:
                 return original_callback(step, x0, x, total_steps)
-
-            global LATENT_CACHE, RESHARPEN_SCALING_ALG, RESHARPEN_STRENGTH
             
             current_strength = apply_scaling(
                 RESHARPEN_SCALING_ALG, 
