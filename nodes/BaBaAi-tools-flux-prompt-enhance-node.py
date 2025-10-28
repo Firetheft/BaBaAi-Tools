@@ -29,10 +29,8 @@ class FluxPromptEnhanceNode:
     CATEGORY = "📜BaBaAi Tools"
 
     def enhance_prompt(self, prompt, seed):
-        # Set the seed for reproducibility
         torch.manual_seed(seed)
 
-        # Use do_sample and temperature to control randomness
         do_sample = seed != 0
         temperature = 0.7 if do_sample else 0.0
 

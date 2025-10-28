@@ -5,13 +5,12 @@ from PIL import Image, ImageDraw
 import numpy as np
 from typing import Tuple, List, Dict, Any, Optional
 
-# Added for colornamer
 try:
     import colornamer
 except ImportError:
     colornamer = None
 
-import random  # Import random for color generation
+import random
 
 def hex_to_dec(inhex):
     try:
@@ -21,8 +20,32 @@ def hex_to_dec(inhex):
         rgbval = (int(rval, 16), int(gval, 16), int(bval, 16))
         return rgbval
     except (IndexError, ValueError):
-        return (0, 0, 0)  # Handle invalid hex codes
+        return (0, 0, 0)
 
+class BabaColorInputNode:
+    @classmethod
+    def INPUT_TYPES(s):
+        return {
+            "required": {
+                "color": ("BABA_COLOR", {"default": "#FFFFFF"}),
+                "width": ("INT", {"default": 128, "min": 32, "max": 4096, "step": 8}),
+                "height": ("INT", {"default": 128, "min": 32, "max": 4096, "step": 8}),
+            }
+        }
+
+    RETURN_TYPES = ("STRING", "IMAGE")
+    RETURN_NAMES = ("hex_color", "color_image")
+    FUNCTION = "get_color"
+    CATEGORY = "📜BaBaAi Tools"
+    OUTPUT_NODE = True
+
+    def get_color(self, color, width, height):
+        hex_string = color
+        rgb_color = hex_to_dec(hex_string)
+        image = Image.new('RGB', (width, height), color=rgb_color)
+        tensor_image = pil2tensor(image)
+        
+        return (hex_string, tensor_image)
 
 class ColorPalettePickerNode:
     dependencies_checked = False
@@ -45,11 +68,11 @@ class ColorPalettePickerNode:
     def INPUT_TYPES(s):
         return {
             "required": {
-                "color1": ("COLOR", {"default": "#ffffff"}),
-                "color2": ("COLOR", {"default": "#ffffff"}),
-                "color3": ("COLOR", {"default": "#ffffff"}),
-                "color4": ("COLOR", {"default": "#ffffff"}),
-                "color5": ("COLOR", {"default": "#ffffff"}),
+                "color1": ("BABA_COLOR", {"default": "#ffffff"}),
+                "color2": ("BABA_COLOR", {"default": "#ffffff"}),
+                "color3": ("BABA_COLOR", {"default": "#ffffff"}),
+                "color4": ("BABA_COLOR", {"default": "#ffffff"}),
+                "color5": ("BABA_COLOR", {"default": "#ffffff"}),
                 "get_complementary": (
                     "BOOLEAN",
                     {
@@ -86,7 +109,6 @@ class ColorPalettePickerNode:
                         "tooltip": "Comma-separated list of colors to exclude from the output",
                     },
                 ),
-                # Add the new options below
                 "randomize_colors": (
                     "BOOLEAN",
                     {
@@ -105,7 +127,7 @@ class ColorPalettePickerNode:
                         "tooltip": "Random seed for generating colors. Leave blank or set to 0 for random seed.",
                     },
                 ),
-                "max_variation": (  # Added max_variation input
+                "max_variation": (
                     "INT",
                     {
                         "default": 30,
@@ -150,13 +172,11 @@ class ColorPalettePickerNode:
         else:
             self.exclude = []
 
-        # Handle randomization logic
         if randomize_colors:
-            # Set seed if it's provided; otherwise, use a random seed
             if seed != 0:  
                 random.seed(seed)
             else:
-                random.seed()  # Random seed
+                random.seed()
 
             rgb_colors = [hex_to_dec(c) for c in [color1, color2, color3, color4, color5]]
             rgb_colors = [self.add_randomness_to_color(color, max_variation) for color in rgb_colors]
@@ -169,6 +189,8 @@ class ColorPalettePickerNode:
 
         plain_english_colors = [self.get_webcolor_name(color) for color in rgb_colors]
         hex_colors = [f"#{color[0]:02x}{color[1]:02x}{color[2]:02x}" for color in rgb_colors]
+
+        new_hex_colors_for_ui = hex_colors[:5]
 
         colornamer_names = self.get_colornamer_names(rgb_colors) if colornamer else [{"xkcd_color": "N/A", "design_color": "N/A", "common_color": "N/A", "color_type": "N/A", "color_family": "N/A"}] * len(rgb_colors)
 
@@ -191,7 +213,12 @@ class ColorPalettePickerNode:
 
         palette_image = self.generate_palette_image(rgb_colors, palette_image_size, palette_image_mode)
 
-        return (output_map[output_choices], palette_image)
+        return {
+            "ui": {
+                "new_colors": new_hex_colors_for_ui
+            },
+            "result": (output_map[output_choices], palette_image)
+        }
 
     def join_and_exclude(self, colors: List[str]) -> str:
         return ", ".join(
@@ -255,12 +282,12 @@ class ColorPalettePickerNode:
 def pil2tensor(image):
     return torch.from_numpy(np.array(image).astype(np.float32) / 255.0).unsqueeze(0)
 
-
-# Node export details
 NODE_CLASS_MAPPINGS = {
-    "ColorPalettePickerNode": ColorPalettePickerNode
+    "ColorPalettePickerNode": ColorPalettePickerNode,
+    "BabaColorInputNode": BabaColorInputNode
 }
 
 NODE_DISPLAY_NAME_MAPPINGS = {
-    "ColorPalettePickerNode": "调色板选择器"
+    "ColorPalettePickerNode": "调色板选择器",
+    "BabaColorInputNode": "颜色选择器"
 }

@@ -1,18 +1,5 @@
-/**
- * MultiAreaConditioning.js
- * Fully Compatible with ComfyUI v0.3.43 Frontend API
- *
- * @description 多区域条件控制的前端可视化界面，支持点击开关式拖拽交互 (Final Layout-Corrected Version)
- * @author Davemane42 (Corrected by Gemini)
- * @version 3.2.0
- * @updated 2025-08-09
- * @comfyui_version 0.3.43
- * @frontend_api_version 1.23.4
- */
-
 import { app } from "/scripts/app.js";
 
-// 常量定义
 const CONSTANTS = {
     CANVAS_HEIGHT: 250, // 控制节点中间可视化操作区域（我们称之为“画布”）的高度
     WIDGET_HEIGHT: 30, // 控件滑块的高度。
@@ -33,7 +20,6 @@ const CONSTANTS = {
     }
 };
 
-// 实用工具函数
 const Utils = {
     createCustomInt: function(node, inputName, val, func, config = {}) {
         const defaultConfig = { min: 0, max: 4096, step: 640, precision: 0 };
@@ -55,7 +41,6 @@ const Utils = {
     }
 };
 
-// 布局管理器 (最终修正版)
 const LayoutManager = {
     computeCanvasSize: function(node) {
         if (!node.widgets) return;
@@ -63,14 +48,12 @@ const LayoutManager = {
         const canvasWidget = node.widgets.find(w => w.type === "customCanvas");
         const otherWidgets = node.widgets.filter(w => w.type !== "customCanvas");
 
-        // 1. 定位画布
         if (canvasWidget) {
             canvasWidget.y = CONSTANTS.TITLE_HEIGHT;
             canvasWidget.h = CONSTANTS.CANVAS_HEIGHT;
         }
         node.canvasHeight = CONSTANTS.CANVAS_HEIGHT;
         
-        // 2. 从画布下方开始，从上往下定位所有其他控件
         let currentY = CONSTANTS.CANVAS_HEIGHT + CONSTANTS.GAP_BELOW_CANVAS;
         
         otherWidgets.forEach(widget => {
@@ -78,8 +61,6 @@ const LayoutManager = {
             currentY += CONSTANTS.WIDGET_HEIGHT;
         });
 
-        // 3. 根据内容自动计算并设置节点高度
-        // 核心修正: 总高度不再包含TITLE_HEIGHT，因为框架会自动添加它。
         const totalHeight = CONSTANTS.CANVAS_HEIGHT + CONSTANTS.GAP_BELOW_CANVAS + (otherWidgets.length * CONSTANTS.WIDGET_HEIGHT) + CONSTANTS.MARGIN;
         if (node.size[1] !== totalHeight) {
             node.size[1] = totalHeight;
@@ -87,7 +68,6 @@ const LayoutManager = {
     }
 };
 
-// 绘制引擎
 const DrawEngine = {
     drawRotatedRect: function(ctx, x, y, w, h, rotation, color) {
         try {
@@ -136,7 +116,6 @@ function addMultiAreaConditioningCanvas(node, app) {
         name: "MultiAreaConditioning-Canvas",
         draw: function (ctx, node, widgetWidth, widgetY, height) {
             try {
-                // 强制布局：确保控件始终位于画布下方，以覆盖ComfyUI的默认布局行为
                 LayoutManager.computeCanvasSize(node);
 
                 const visible = app.canvas && app.canvas.ds && app.canvas.ds.scale > 0.6;
@@ -159,7 +138,6 @@ function addMultiAreaConditioningCanvas(node, app) {
                 const backgroundWidth = resolutionX * scale;
                 const backgroundHeight = resolutionY * scale;
 
-                // 将画布在新的可用空间内进行居中
                 const backgroundX = CONSTANTS.SIDE_MARGIN + (availableWidth - backgroundWidth) / 2;
                 const backgroundY = margin + (availableHeight - backgroundHeight) / 2;
 
@@ -269,7 +247,7 @@ app.registerExtension({
                         Utils.createCustomInt(node, names[i], defaultValues[i], function (v) { Utils.transformFunc(this, v, node, paramIndexMap[i]); }, config);
                     }
 
-                    node.size[0] = 400; // <--- 在这里添加，设置新节点的初始宽度
+                    node.size[0] = 400;
                     LayoutManager.computeCanvasSize(node);
 
                     let isDragging = false;
@@ -370,9 +348,8 @@ app.registerExtension({
                     if (!this.properties["width"]) this.properties["width"] = CONSTANTS.DEFAULT_RESOLUTION.width;
                     if (!this.properties["height"]) this.properties["height"] = CONSTANTS.DEFAULT_RESOLUTION.height;
                     
-                    // 如果保存的节点宽度不存在或小于400，则设置为400
                     if (!this.size[0] || this.size[0] < 400) {
-                        this.size[0] = 400; // <--- 在这里添加
+                        this.size[0] = 400;
                     }
                     LayoutManager.computeCanvasSize(this);
 

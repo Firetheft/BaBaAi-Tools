@@ -17,7 +17,6 @@ app.registerExtension({
                 let outputWidget = getOutputWidget(node);
 
                 if (!outputWidget) {
-                    // Create a new widget to display the output text
                     outputWidget = ComfyWidgets["STRING"](node, outputWidgetId, ["STRING", { multiline: true }], app).widget;
                     outputWidget.inputEl.readOnly = true;
                     outputWidget.inputEl.style.opacity = 0.6;
@@ -28,7 +27,6 @@ app.registerExtension({
                 if (!text || !text.length) {
                     outputWidget.value = "";
                 } else {
-                    // Concatenate all text parts into a single string
                     const formattedText = text.join('\n');
                     outputWidget.value = formattedText;
                 }
@@ -53,8 +51,6 @@ app.registerExtension({
                 requestAnimationFrame(() => {
                     onConfigure?.apply(this, configureArgs);
                     if (this.widgets_values?.length) {
-                         // The widgets_values array will contain all widget values in order
-                         // We are only interested in the last one which is the output text
                          const outputValue = this.widgets_values[this.widgets_values.length - 1];
                          if (outputValue) {
                             populate.call(this, outputValue);
@@ -67,7 +63,6 @@ app.registerExtension({
             const onNodeCreated = nodeType.prototype.onNodeCreated;
             nodeType.prototype.onNodeCreated = function () {
                 onNodeCreated?.apply(this, arguments);
-                // Ensure the dynamic widget is created on node creation
                 populate.call(this, [""]);
             };
         }

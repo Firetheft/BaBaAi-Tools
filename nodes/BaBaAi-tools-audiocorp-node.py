@@ -50,7 +50,6 @@ class AudioCrop:
         waveform: torch.Tensor = audio["waveform"]
         sample_rate: int = audio["sample_rate"]
 
-        # Assume that no ":" in input means that the user is trying to specify seconds
         if ":" not in start_time:
             start_time = f"00:{start_time}"
         if ":" not in end_time:

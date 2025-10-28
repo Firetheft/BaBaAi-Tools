@@ -7,12 +7,10 @@ from PIL import Image, ImageDraw
 import numpy as np
 from typing import Tuple, List, Dict, Any, Optional
 
-#Added for colornamer
 try:
     import colornamer
 except ImportError:
     colornamer = None
-
 
 class ColorPaletteExtractorNode:
     dependencies_checked = False
@@ -176,7 +174,6 @@ class ColorPaletteExtractorNode:
         color_types = [color["color_type"] for color in colornamer_names]
         color_families = [color["color_family"] for color in colornamer_names]
 
-
         output_map = {
             "plain_english_colors": self.join_and_exclude(plain_english_colors),
             "rgb_colors": self.join_and_exclude(rgb_colors),
@@ -217,7 +214,7 @@ class ColorPaletteExtractorNode:
             algorithm=self.algorithm,
             max_iter=self.num_iterations,
             random_state=seed,
-            n_init='auto' #Added for better convergence
+            n_init='auto'
         )
         colors = kmeans.fit(pixels).cluster_centers_ * 255
         return colors
@@ -243,7 +240,7 @@ class ColorPaletteExtractorNode:
                     seed = node["widgets_values"][0]
                     if seed <= 0 or seed > 0xFFFFFFFF:
                         return None
-                    return int(seed) #Ensure seed is an integer
+                    return int(seed)
         except Exception:
             pass
         return None
@@ -252,7 +249,7 @@ class ColorPaletteExtractorNode:
         num_colors = len(colors)
         if mode.lower() == "back_to_back":
             width = num_colors * size
-            height = num_colors * size # 额外设置“back_to_back”模式下调色板图片高度，可自定义如“2 * size”
+            height = num_colors * size
             cell_height = height
         else:
             rows = int(num_colors**0.5)
@@ -261,21 +258,19 @@ class ColorPaletteExtractorNode:
             height = rows * size
             cell_height = size
 
-        palette = Image.new('RGBA', (width, height), (0, 0, 0, 0)) # 使用 Alpha 通道创建透明度
+        palette = Image.new('RGBA', (width, height), (0, 0, 0, 0))
         draw = ImageDraw.Draw(palette)
 
         for i, color in enumerate(colors):
             x = (i % (width // size)) * size
             y = (i // (width // size)) * cell_height
-            draw.rectangle([x, y, x + size, y + cell_height], fill=color + (255,)) # 为不透明颜色添加 alpha 值 255
+            draw.rectangle([x, y, x + size, y + cell_height], fill=color + (255,))
 
         return pil2tensor(palette)
 
 def pil2tensor(image):
     return torch.from_numpy(np.array(image).astype(np.float32) / 255.0).unsqueeze(0)
 
-
-# Node export details
 NODE_CLASS_MAPPINGS = {
     "ColorPaletteExtractorNode": ColorPaletteExtractorNode
 }

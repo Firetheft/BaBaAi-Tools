@@ -3,15 +3,11 @@ import json
 from typing import Tuple, Any, Dict
 import logging
 import re
+import html
 
 logger = logging.getLogger(__name__)
 
 class BaBaAiTextViewer:
-    """
-    一个用于BaBaAi Tools插件的文本查看器节点。
-    它接收字符串输入，并提供一个开关来控制是否自动清理文本格式。
-    处理后的结果会直接显示在节点界面上，同时提供一个字符串输出端口。
-    """
     def __init__(self):
         pass
 
@@ -41,11 +37,26 @@ class BaBaAiTextViewer:
             processed_text = processed_text.strip()
             processed_text = processed_text.replace('\\n\\n', '\n')
             processed_text = processed_text.replace('\\n', '\n')
+            processed_text = re.sub(r'<[^>]+>', ' ', processed_text)
+            processed_text = html.unescape(processed_text)
+            processed_text = re.sub(r'^\s*[-*_]{3,}\s*$', '', processed_text, flags=re.MULTILINE)
+            processed_text = re.sub(r'!\[.*?\]\(.*?\)', '', processed_text)
+            processed_text = re.sub(r'\[(.*?)\]\(.*?\)', r'\1', processed_text)
+            processed_text = re.sub(r'^\s*#+\s+(.*)\s*$', r'\1', processed_text, flags=re.MULTILINE)
+            processed_text = re.sub(r'^\s*>\s+', '', processed_text, flags=re.MULTILINE)
+            processed_text = re.sub(r'^\s*[-*+]\s+', '', processed_text, flags=re.MULTILINE)
+            processed_text = re.sub(r'(\*\*\*|___)(.*?)\1', r'\2', processed_text)
+            processed_text = re.sub(r'(\*\*|__)(.*?)\1', r'\2', processed_text)
+            processed_text = re.sub(r'(\*|_)(.*?)\1', r'\2', processed_text)
+            processed_text = re.sub(r'(~~)(.*?)\1', r'\2', processed_text)
+            processed_text = re.sub(r'`(.*?)`', r'\1', processed_text)
             processed_text = re.sub(r'\n{2,}', '\n', processed_text)
+            processed_text = re.sub(r'(.+?)(?:[,，\s\n]+\1)+', r'\1', processed_text, flags=re.DOTALL)
             processed_text = re.sub(r'\s*,\s*', ', ', processed_text)
             processed_text = re.sub(r'(\s*,){2,}', ', ', processed_text)
-            processed_text = re.sub(r'\s{2,}', ' ', processed_text)
-        
+            processed_text = re.sub(r'[ \t]{2,}', ' ', processed_text)
+            processed_text = re.sub(r'^[ \t]+|[ \t]+$', '', processed_text, flags=re.MULTILINE)
+
         formatted_text = processed_text.strip()
 
         return {

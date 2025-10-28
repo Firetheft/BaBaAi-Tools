@@ -4,14 +4,11 @@ import torch
 import re
 import ast
 
-
 def EuclideanDistance(detected_colors, target_colors):
     return np.linalg.norm(detected_colors - target_colors, axis=1)
 
-
 def ManhattanDistance(detected_colors, target_colors):
     return np.sum(np.abs(detected_colors - target_colors), axis=1)
-
 
 def ColorClustering(image, k, cluster_method):
     img_array = image.reshape((image.shape[0] * image.shape[1], 3))
@@ -26,7 +23,6 @@ def ColorClustering(image, k, cluster_method):
     clustering_model.fit(img_array)
     main_colors = clustering_model.cluster_centers_
     return image, main_colors.astype(int), clustering_model
-
 
 def SwitchColors(image, detected_colors, target_colors, clustering_model, distance_method):
     closest_colors = []
@@ -51,7 +47,6 @@ def SwitchColors(image, detected_colors, target_colors, clustering_model, distan
 
     return processedImage
 
-
 def Hex_to_RGB(inhex: str) -> tuple:
     if not inhex.startswith('#'):
         raise ValueError(f'Invalid Hex Code: {inhex}')
@@ -62,25 +57,20 @@ def Hex_to_RGB(inhex: str) -> tuple:
         rgb = (int(rval, 16), int(gval, 16), int(bval, 16))
     return tuple(rgb)
 
-
 def parse_color_palette(color_palette: str):
-    # Check if the input contains hex codes (starts with #) or RGB tuples
     hex_pattern = r'#([A-Fa-f0-9]{6})'
     rgb_pattern = r'\((\d{1,3}),\s*(\d{1,3}),\s*(\d{1,3})\)'
 
     if re.search(hex_pattern, color_palette):
-        # Input is in hex format, split by commas and convert to RGB
         hex_colors = [color.strip() for color in color_palette.split(',')]
         return [Hex_to_RGB(color) for color in hex_colors]
 
     elif re.search(rgb_pattern, color_palette):
-        # Input is in RGB tuple format, use ast.literal_eval to safely convert it to a list of tuples
-        rgb_colors_str = f"[{color_palette}]"  # Add brackets to make it a list of tuples
+        rgb_colors_str = f"[{color_palette}]"
         return ast.literal_eval(rgb_colors_str)
 
     else:
         raise ValueError("Invalid color palette format. Please use hex format '#RRGGBB' or RGB format '(R, G, B)'.")
-
 
 class ColorPaletteTransferNode:
     @classmethod
@@ -88,8 +78,7 @@ class ColorPaletteTransferNode:
         data_in = {
             "required": {
                 "image": ("IMAGE",),
-                "color_palette": ("STRING", {"forceInput": True}),  # 使用 forceInput 强制从外部接收输入
-                # "color_palette": ("STRING", {'default': '', 'multiline': True}),
+                "color_palette": ("STRING", {"forceInput": True}),
                 "cluster_method": (["Kmeans", "Mini batch Kmeans"], {'default': 'Kmeans'}),
                 "distance_method": (["Euclidean", "Manhattan"], {'default': 'Euclidean'}),
             }
@@ -101,7 +90,6 @@ class ColorPaletteTransferNode:
     CATEGORY = "📜BaBaAi Tools"
 
     def color_transfer(self, image, color_palette, cluster_method, distance_method):
-        # Parse color_palette string into a list of RGB tuples
         target_colors = parse_color_palette(color_palette)
 
         if len(target_colors) == 0:
@@ -120,7 +108,6 @@ class ColorPaletteTransferNode:
 
         return (output, )
 
-# Node export details
 NODE_CLASS_MAPPINGS = {
     "ColorPaletteTransferNode": ColorPaletteTransferNode
 }
