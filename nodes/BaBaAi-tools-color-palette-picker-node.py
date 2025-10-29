@@ -4,13 +4,27 @@ import logging
 from PIL import Image, ImageDraw
 import numpy as np
 from typing import Tuple, List, Dict, Any, Optional
+import random
 
 try:
     import colornamer
 except ImportError:
     colornamer = None
 
-import random
+from webcolors._definitions import (
+    _CSS2_HEX_TO_NAMES,
+    _CSS21_HEX_TO_NAMES,
+    _CSS3_HEX_TO_NAMES,
+    _HTML4_HEX_TO_NAMES,
+)
+
+try:
+    from .meodai_colors import MEODAI_COLORS
+    MEODAI_AVAILABLE = True
+except ImportError:
+    MEODAI_AVAILABLE = False
+    logging.warning("[BabaColorPicker] Meodai color loader not found. 'meodai_color_names' will be unavailable.")
+
 
 def hex_to_dec(inhex):
     try:
@@ -66,6 +80,20 @@ class ColorPalettePickerNode:
 
     @classmethod
     def INPUT_TYPES(s):
+        
+        output_options = [
+            "plain_english_colors", 
+            "rgb_colors", 
+            "hex_colors", 
+            "xkcd_colors", 
+            "design_colors", 
+            "common_colors", 
+            "color_types", 
+            "color_families"
+        ]
+        if MEODAI_AVAILABLE:
+            output_options.append("meodai_color_names")
+        
         return {
             "required": {
                 "color1": ("BABA_COLOR", {"default": "#ffffff"}),
@@ -83,7 +111,7 @@ class ColorPalettePickerNode:
                     },
                 ),
                 "output_choices": (
-                    ["plain_english_colors", "rgb_colors", "hex_colors", "xkcd_colors", "design_colors", "common_colors", "color_types", "color_families"],
+                    output_options,
                     {
                         "default": "xkcd_colors",
                         "tooltip": "Select which color output to return",
@@ -158,11 +186,12 @@ class ColorPalettePickerNode:
             self.logger.error("colornamer library not found.  XKCD, Design, Common, Type, and Family color outputs will be unavailable.")
 
         self.webcolor_dict = {}
+
         for color_dict in [
-            webcolors.CSS2_HEX_TO_NAMES,
-            webcolors.CSS21_HEX_TO_NAMES,
-            webcolors.CSS3_HEX_TO_NAMES,
-            webcolors.HTML4_HEX_TO_NAMES,
+            _CSS2_HEX_TO_NAMES,
+            _CSS21_HEX_TO_NAMES,
+            _CSS3_HEX_TO_NAMES,
+            _HTML4_HEX_TO_NAMES,
         ]:
             self.webcolor_dict.update(color_dict)
 
@@ -200,6 +229,10 @@ class ColorPalettePickerNode:
         color_types = [color["color_type"] for color in colornamer_names]
         color_families = [color["color_family"] for color in colornamer_names]
 
+        meodai_color_names = ["N/A"] * len(rgb_colors)
+        if MEODAI_AVAILABLE:
+            meodai_color_names = [MEODAI_COLORS.get_closest_color_name(color) for color in rgb_colors]
+
         output_map = {
             "plain_english_colors": self.join_and_exclude(plain_english_colors),
             "rgb_colors": self.join_and_exclude([str(c) for c in rgb_colors]),
@@ -209,6 +242,7 @@ class ColorPalettePickerNode:
             "common_colors": self.join_and_exclude(common_colors),
             "color_types": self.join_and_exclude(color_types),
             "color_families": self.join_and_exclude(color_families),
+            "meodai_color_names": self.join_and_exclude(meodai_color_names),
         }
 
         palette_image = self.generate_palette_image(rgb_colors, palette_image_size, palette_image_mode)
@@ -272,7 +306,6 @@ class ColorPalettePickerNode:
         return tuple(random.randint(0, 255) for _ in range(3))
 
     def add_randomness_to_color(self, color: Tuple[int, int, int], max_variation: int = 30) -> Tuple[int, int, int]:
-        """Adds random variation to an RGB color."""
         r, g, b = color
         r = max(0, min(255, r + random.randint(-max_variation, max_variation)))
         g = max(0, min(255, g + random.randint(-max_variation, max_variation)))

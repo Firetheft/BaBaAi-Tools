@@ -1,4 +1,4 @@
-transformers
+transformers>=4.57.0
 torch>=1.9.0
 tqdm
 huggingface_hub
@@ -8,9 +8,9 @@ numpy>=1.21.0
 Pillow>=10.1.0
 google-genai
 google-generativeai
-colornamer>=0.2.3
+colornamer==0.2.3
 scikit_learn>=1.4.0
-webcolors>=1.13
+webcolors
 qwen-vl-utils
 qwen-vl-utils[decord]
 ultralytics>=8.3.0

@@ -12,6 +12,21 @@ try:
 except ImportError:
     colornamer = None
 
+from webcolors._definitions import (
+    _CSS2_HEX_TO_NAMES,
+    _CSS21_HEX_TO_NAMES,
+    _CSS3_HEX_TO_NAMES,
+    _HTML4_HEX_TO_NAMES,
+)
+
+try:
+    from .meodai_colors import MEODAI_COLORS
+    MEODAI_AVAILABLE = True
+except ImportError:
+    MEODAI_AVAILABLE = False
+    logging.warning("[BabaColorExtractor] Meodai color loader not found. 'meodai_color_names' will be unavailable.")
+
+
 class ColorPaletteExtractorNode:
     dependencies_checked = False
 
@@ -31,6 +46,20 @@ class ColorPaletteExtractorNode:
 
     @classmethod
     def INPUT_TYPES(s):
+        
+        output_options = [
+            "plain_english_colors", 
+            "rgb_colors", 
+            "hex_colors", 
+            "xkcd_colors", 
+            "design_colors", 
+            "common_colors", 
+            "color_types", 
+            "color_families"
+        ]
+        if MEODAI_AVAILABLE:
+            output_options.append("meodai_color_names")
+            
         return {
             "required": {
                 "input_image": ("IMAGE",),
@@ -78,7 +107,7 @@ class ColorPaletteExtractorNode:
                     },
                 ),
                 "output_choices": (
-                    ["plain_english_colors", "rgb_colors", "hex_colors", "xkcd_colors", "design_colors", "common_colors", "color_types", "color_families"],
+                    output_options,
                     {
                         "default": "plain_english_colors",
                         "tooltip": "Select which color output to return",
@@ -137,7 +166,6 @@ class ColorPaletteExtractorNode:
         if colornamer is None:
             self.logger.error("colornamer library not found.  XKCD, Design, Common, Type, and Family color outputs will be unavailable.")
 
-
         if exclude_colors.strip():
             self.exclude = exclude_colors.strip().split(",")
             self.exclude = [color.strip().lower() for color in self.exclude]
@@ -147,11 +175,12 @@ class ColorPaletteExtractorNode:
         self.num_iterations = int(512 * (accuracy / 100))
         self.algorithm = k_means_algorithm if k_means_algorithm in ['lloyd', 'elkan'] else 'lloyd'
         self.webcolor_dict = {}
+        
         for color_dict in [
-            webcolors.CSS2_HEX_TO_NAMES,
-            webcolors.CSS21_HEX_TO_NAMES,
-            webcolors.CSS3_HEX_TO_NAMES,
-            webcolors.HTML4_HEX_TO_NAMES,
+            _CSS2_HEX_TO_NAMES,
+            _CSS21_HEX_TO_NAMES,
+            _CSS3_HEX_TO_NAMES,
+            _HTML4_HEX_TO_NAMES,
         ]:
             self.webcolor_dict.update(color_dict)
 
@@ -173,6 +202,10 @@ class ColorPaletteExtractorNode:
         common_colors = [color["common_color"] for color in colornamer_names]
         color_types = [color["color_type"] for color in colornamer_names]
         color_families = [color["color_family"] for color in colornamer_names]
+        
+        meodai_color_names = ["N/A"] * len(rgb)
+        if MEODAI_AVAILABLE:
+            meodai_color_names = [MEODAI_COLORS.get_closest_color_name(color) for color in rgb]
 
         output_map = {
             "plain_english_colors": self.join_and_exclude(plain_english_colors),
@@ -183,6 +216,7 @@ class ColorPaletteExtractorNode:
             "common_colors": self.join_and_exclude(common_colors),
             "color_types": self.join_and_exclude(color_types),
             "color_families": self.join_and_exclude(color_families),
+            "meodai_color_names": self.join_and_exclude(meodai_color_names),
         }
 
         palette_image = self.generate_palette_image(rgb, palette_image_size, palette_image_mode)
@@ -208,7 +242,13 @@ class ColorPaletteExtractorNode:
     def interrogate_colors(
         self, image: torch.Tensor, num_colors: int, seed: Optional[int] = None
     ) -> List[ndarray]:
-        pixels = image.view(-1, image.shape[-1]).numpy()
+
+        pixels = image.view(-1, image.shape[-1]).cpu().numpy()
+        
+        if num_colors > pixels.shape[0]:
+            self.logger.warning(f"Number of colors ({num_colors}) is greater than number of pixels ({pixels.shape[0]}). Clamping to {pixels.shape[0]}.")
+            num_colors = pixels.shape[0]
+            
         kmeans = KMeans(
             n_clusters=num_colors,
             algorithm=self.algorithm,
@@ -216,7 +256,8 @@ class ColorPaletteExtractorNode:
             random_state=seed,
             n_init='auto'
         )
-        colors = kmeans.fit(pixels).cluster_centers_ * 255
+
+        colors = kmeans.fit(pixels).cluster_centers_ * 255.0
         return colors
 
     def get_webcolor_name(self, rgb: Tuple[int, int, int]) -> str:
@@ -264,7 +305,7 @@ class ColorPaletteExtractorNode:
         for i, color in enumerate(colors):
             x = (i % (width // size)) * size
             y = (i // (width // size)) * cell_height
-            draw.rectangle([x, y, x + size, y + cell_height], fill=color + (255,))
+            draw.rectangle([x, y, x + size, y + cell_height], fill=tuple(int(c) for c in color) + (255,))
 
         return pil2tensor(palette)
 

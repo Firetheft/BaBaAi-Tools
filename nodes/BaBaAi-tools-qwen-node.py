@@ -413,14 +413,10 @@ C. 剧烈的环境突变 (果)： 描述一个完全改变场景的事件，并*
         "图片指令-图片编辑-年龄变化": instruction_base_single + "Visibly and realistically age or de-age the main subject, representing a different life stage. Describe detailed facial and hair changes while maintaining core features." + common_suffix_single,
         "图片指令-图片编辑-季节变化": instruction_base_single + "Transform the scene’s season (e.g., from spring to winter or summer to autumn). Modify foliage, lighting, clothing, and ambient atmosphere to reflect the new season." + common_suffix_single,
         "图片指令-图片编辑-合成融合": instruction_base_single + "Detect any compositing mismatches between the foreground subject and background, such as inconsistent lighting, shadows, color grading, or depth cues. Perform automatic fusion to harmonize both elements by adjusting lighting direction, shadow placement, color tones, perspective alignment, and edge blending to ensure seamless realism." + common_suffix_single,
-        "图片指令-图片编辑-调色板": """根据下面的几种颜色来对这张图像的色彩进行重新设计图像编辑提示词，比如把图像中的某个物体换成某个颜色，确保每一种颜色都被应用到图像上，你只需要输出如下格式的示例文本：
-将“天空”的颜色改为“dark sky blue”。
-将女孩T恤上的“蓝色领口”和数字“83”的颜色改为“dark indigo”。
-将“泥土小径”的颜色改为“golden yellow”。
-将女孩的“红色裙子”颜色改为“bright violet”。
-将“小羊的鼻子和内耳”以及女孩“羊帽上的鼻子”的颜色，改为“brownish pink”。
+        "图片指令-图片编辑-调色板": """根据下面的几种颜色来对这张图像的色彩进行重新设计图像编辑提示词，比如把图像中的某个物体换成某个颜色，确保每一种颜色都被应用到图像上，需要考虑图像中的所有因素，不能仅针对主体进行颜色替换。输出范本为：
+将“某物体”的颜色改为“某颜色”。
 
-最后你需要使用的颜色如下：""",
+注意上面只是给你参考的输出格式样本，你需要分析我提供的图像来重新设计。最后你需要使用的颜色如下：""",
         "视频指令-视频描述": "Describe the video in detail and accurately",
         "视频指令-默片补音": "You are a voice synthesis prompt composer for the MMAudio model. Your task is to generate realistic and expressive voice-based audio for a silent video. Analyze the visual content frame by frame, and for each segment, determine the appropriate sound—whether it's speech, ambient noise, mechanical sounds, emotional vocalizations, or symbolic utterances. Your output must reflect the timing, pacing, and emotional tone of the video, matching visual actions and transitions precisely. Avoid vague or generic words; instead, write full, meaningful voice or sound content that would naturally accompany the visuals. Do not add any conversational text, explanations, deviations, or numbering.",
         "音频指令-音频描述": "Describe the audio in detail and accurately"
