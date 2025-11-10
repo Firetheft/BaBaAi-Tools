@@ -6,8 +6,6 @@ torchvision>=0.10.0
 opencv-python>=4.5.0
 numpy>=1.21.0
 Pillow>=10.1.0
-google-genai
-google-generativeai
 colornamer==0.2.3
 scikit_learn>=1.4.0
 webcolors

@@ -6,6 +6,8 @@ import re
 import random
 import time
 from collections import Counter
+import hashlib
+import io
 
 from PIL import Image
 from transformers import (
@@ -413,10 +415,10 @@ C. 剧烈的环境突变 (果)： 描述一个完全改变场景的事件，并*
         "图片指令-图片编辑-年龄变化": instruction_base_single + "Visibly and realistically age or de-age the main subject, representing a different life stage. Describe detailed facial and hair changes while maintaining core features." + common_suffix_single,
         "图片指令-图片编辑-季节变化": instruction_base_single + "Transform the scene’s season (e.g., from spring to winter or summer to autumn). Modify foliage, lighting, clothing, and ambient atmosphere to reflect the new season." + common_suffix_single,
         "图片指令-图片编辑-合成融合": instruction_base_single + "Detect any compositing mismatches between the foreground subject and background, such as inconsistent lighting, shadows, color grading, or depth cues. Perform automatic fusion to harmonize both elements by adjusting lighting direction, shadow placement, color tones, perspective alignment, and edge blending to ensure seamless realism." + common_suffix_single,
-        "图片指令-图片编辑-调色板": """根据下面的几种颜色来对这张图像的色彩进行重新设计图像编辑提示词，比如把图像中的某个物体换成某个颜色，确保每一种颜色都被应用到图像上，需要考虑图像中的所有因素，不能仅针对主体进行颜色替换。输出范本为：
+        "图片指令-图片编辑-调色板": """根据下面的几种颜色来对这张图像的色彩进行重新设计图像编辑提示词，比如把图像中的单个或者多个物体换成某个颜色，确保每一种颜色都被应用到图像上，需要考虑图像中的所有因素，不能仅针对主体进行颜色替换。输出范本为：
 将“某物体”的颜色改为“某颜色”。
 
-注意上面只是给你参考的输出格式样本，你需要分析我提供的图像来重新设计。最后你需要使用的颜色如下：""",
+注意上面只是给你参考的输出格式样本，你需要分析我提供的图像来重新设计，颜色更换提示词限制在5至10行内，同时需要注意避免对同一物体进行多次颜色修改，强调“把某物体的颜色换成某种颜色”，而不是“把某物体换成某种颜色”。最后你需要使用的颜色如下：""",
         "视频指令-视频描述": "Describe the video in detail and accurately",
         "视频指令-默片补音": "You are a voice synthesis prompt composer for the MMAudio model. Your task is to generate realistic and expressive voice-based audio for a silent video. Analyze the visual content frame by frame, and for each segment, determine the appropriate sound—whether it's speech, ambient noise, mechanical sounds, emotional vocalizations, or symbolic utterances. Your output must reflect the timing, pacing, and emotional tone of the video, matching visual actions and transitions precisely. Avoid vague or generic words; instead, write full, meaningful voice or sound content that would naturally accompany the visuals. Do not add any conversational text, explanations, deviations, or numbering.",
         "音频指令-音频描述": "Describe the audio in detail and accurately"
@@ -488,65 +490,66 @@ C. 剧烈的环境突变 (果)： 描述一个完全改变场景的事件，并*
         os.environ["FORCE_QWENVL_VIDEO_READER"] = video_decode_method
         image_inputs, video_inputs, video_kwargs = process_vision_info(messages, return_video_kwargs=True)
 
-        default_fps = 30.0
-        final_fps = default_fps
+        if video is not None: 
+            default_fps = 30.0
+            final_fps = default_fps
 
-        if "videos_kwargs" in video_kwargs and isinstance(video_kwargs.get("videos_kwargs"), dict):
-            if "fps" in video_kwargs["videos_kwargs"]:
-                fps_value = video_kwargs["videos_kwargs"]["fps"]
-                
-                print(f"[BaBaAi-Tools DEBUG] Original fps_value type: {type(fps_value)}, value: {repr(fps_value)}") 
+            if "videos_kwargs" in video_kwargs and isinstance(video_kwargs.get("videos_kwargs"), dict):
+                if "fps" in video_kwargs["videos_kwargs"]:
+                    fps_value = video_kwargs["videos_kwargs"]["fps"]
+                    
+                    print(f"[BaBaAi-Tools DEBUG] Original fps_value type: {type(fps_value)}, value: {repr(fps_value)}") 
 
-                try:
-                    if isinstance(fps_value, (float, int)):
-                        final_fps = float(fps_value)
-                    elif isinstance(fps_value, (list, tuple)):
-                        temp_fps = None
-                        for item in fps_value:
-                            if isinstance(item, (float, int)):
-                                temp_fps = float(item)
-                                break
-                            elif isinstance(item, (list, tuple)): 
-                                for sub_item in item:
-                                     if isinstance(sub_item, (float, int)):
-                                         temp_fps = float(sub_item)
-                                         break
+                    try:
+                        if isinstance(fps_value, (float, int)):
+                            final_fps = float(fps_value)
+                        elif isinstance(fps_value, (list, tuple)):
+                            temp_fps = None
+                            for item in fps_value:
+                                if isinstance(item, (float, int)):
+                                    temp_fps = float(item)
+                                    break
+                                elif isinstance(item, (list, tuple)): 
+                                    for sub_item in item:
+                                         if isinstance(sub_item, (float, int)):
+                                             temp_fps = float(sub_item)
+                                             break
+                                if temp_fps is not None:
+                                    break
+                            
                             if temp_fps is not None:
-                                break
-                        
-                        if temp_fps is not None:
-                            final_fps = temp_fps
+                                final_fps = temp_fps
+                            else:
+                                print(f"[BaBaAi-Tools WARNING] fps_value is a sequence but contains no number or is empty: {repr(fps_value)}. Using default FPS.")
                         else:
-                            print(f"[BaBaAi-Tools WARNING] fps_value is a sequence but contains no number or is empty: {repr(fps_value)}. Using default FPS.")
-                    else:
-                        print(f"[BaBaAi-Tools DEBUG] Attempting direct float conversion for non-numeric/non-sequence type.")
-                        final_fps = float(fps_value)
-                        
-                except Exception as e:
-                    print(f"[BaBaAi-Tools ERROR] Could not extract valid FPS from value: {repr(fps_value)}. Error: {e}. Using default FPS.")
-                    final_fps = default_fps 
+                            print(f"[BaBaAi-Tools DEBUG] Attempting direct float conversion for non-numeric/non-sequence type.")
+                            final_fps = float(fps_value)
+                            
+                    except Exception as e:
+                        print(f"[BaBaAi-Tools ERROR] Could not extract valid FPS from value: {repr(fps_value)}. Error: {e}. Using default FPS.")
+                        final_fps = default_fps 
 
-                if final_fps <= 0:
-                   print(f"[BaBaAi-Tools WARNING] Extracted FPS ({final_fps}) is not positive. Using default FPS.")
-                   final_fps = default_fps
+                    if final_fps <= 0:
+                       print(f"[BaBaAi-Tools WARNING] Extracted FPS ({final_fps}) is not positive. Using default FPS.")
+                       final_fps = default_fps
 
-                video_kwargs["videos_kwargs"]["fps"] = final_fps
-                print(f"[BaBaAi-Tools DEBUG] Final fps value set in video_kwargs: {final_fps}") 
+                    video_kwargs["videos_kwargs"]["fps"] = final_fps
+                    print(f"[BaBaAi-Tools DEBUG] Final fps value set in video_kwargs: {final_fps}") 
+                else:
+                     print("[BaBaAi-Tools WARNING] 'fps' key not found in videos_kwargs. Using default FPS.")
+                     if "videos_kwargs" not in video_kwargs: video_kwargs["videos_kwargs"] = {}
+                     video_kwargs["videos_kwargs"]["fps"] = default_fps 
             else:
-                 print("[BaBaAi-Tools WARNING] 'fps' key not found in videos_kwargs. Using default FPS.")
-                 if "videos_kwargs" not in video_kwargs: video_kwargs["videos_kwargs"] = {}
-                 video_kwargs["videos_kwargs"]["fps"] = default_fps 
-        else:
-             print("[BaBaAi-Tools DEBUG] 'videos_kwargs' not found or not a dict in video_kwargs. Attempting to set default FPS.")
-             if "videos_kwargs" not in video_kwargs:
-                 video_kwargs["videos_kwargs"] = {}
-             elif not isinstance(video_kwargs.get("videos_kwargs"), dict):
-                  video_kwargs["videos_kwargs"] = {} 
-             video_kwargs["videos_kwargs"]["fps"] = default_fps
+                 print("[BaBaAi-Tools DEBUG] 'videos_kwargs' not found or not a dict in video_kwargs. Attempting to set default FPS.")
+                 if "videos_kwargs" not in video_kwargs:
+                     video_kwargs["videos_kwargs"] = {}
+                 elif not isinstance(video_kwargs.get("videos_kwargs"), dict):
+                      video_kwargs["videos_kwargs"] = {} 
+                 video_kwargs["videos_kwargs"]["fps"] = default_fps
 
-        if 'fps' in video_kwargs:
-            print(f"[BaBaAi-Tools DEBUG] Removing redundant top-level 'fps' key from video_kwargs.")
-            del video_kwargs['fps']
+            if 'fps' in video_kwargs:
+                print(f"[BaBaAi-Tools DEBUG] Removing redundant top-level 'fps' key from video_kwargs.")
+                del video_kwargs['fps']
 
         inputs = processor(text=[modeltext], images=image_inputs, videos=video_inputs, padding=True, return_tensors="pt", **video_kwargs)
         inputs = inputs.to(model.device)

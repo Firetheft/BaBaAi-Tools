@@ -1,8 +1,6 @@
 import importlib
 
 node_list = [
-    "BaBaAi-tools-flux-prompt-enhance-node",
-    "BaBaAi-tools-gemini-flash-node",
     "BaBaAi-tools-color-palette-extractor-node",
     "BaBaAi-tools-color-palette-picker-node",
     "BaBaAi-tools-color-palette-transfer-node",
@@ -10,11 +8,11 @@ node_list = [
     "BaBaAi-tools-resharpen-details-node",
     "BaBaAi-tools-multi-area-conditioning-node",
     "BaBaAi-tools-qwen-node",
-    "BaBaAi-tools-audiocorp-node",
     "BaBaAi-tools-text-viewer-node",
     "BaBaAi-tools-face_detection_node",
-    "BaBaAi-tools-sa-ode-stable-sampler-node",
     "BaBaAi-tools-translate-node",
+    "BaBaAi-tools-qwen-edit-text-encode-nodes",
+    "BaBaAi-tools-latent-pixel-scale-node",
 ]
 
 NODE_CLASS_MAPPINGS = {}

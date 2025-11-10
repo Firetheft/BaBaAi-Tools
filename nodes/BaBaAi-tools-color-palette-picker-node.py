@@ -62,21 +62,9 @@ class BabaColorInputNode:
         return (hex_string, tensor_image)
 
 class ColorPalettePickerNode:
-    dependencies_checked = False
 
     logger = logging.getLogger(__name__)
     logging.basicConfig(level=logging.INFO)
-
-    @classmethod
-    def check_dependencies(cls):
-        if not cls.dependencies_checked:
-            try:
-                from ..install import check_and_install_dependencies
-                if check_and_install_dependencies():
-                    cls.logger.info("Dependencies were installed or updated. Please restart ComfyUI for changes to take effect.")
-            except ImportError:
-                cls.logger.warning("Could not import check_and_install_dependencies. Skipping dependency check.")
-            cls.dependencies_checked = True
 
     @classmethod
     def INPUT_TYPES(s):
@@ -180,7 +168,6 @@ class ColorPalettePickerNode:
         self,
         color1, color2, color3, color4, color5, get_complementary, exclude_colors, output_choices, palette_image_size, palette_image_mode, randomize_colors, seed, max_variation
     ) -> Tuple[str, torch.Tensor]:
-        self.check_dependencies()
 
         if colornamer is None:
             self.logger.error("colornamer library not found.  XKCD, Design, Common, Type, and Family color outputs will be unavailable.")

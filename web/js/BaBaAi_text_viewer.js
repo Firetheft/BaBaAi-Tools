@@ -4,7 +4,7 @@ import { ComfyWidgets } from "../../../scripts/widgets.js";
 app.registerExtension({
     name: "Comfy.BaBaAiTextViewer",
     async beforeRegisterNodeDef(nodeType, nodeData, app) {
-        if (nodeData.name === "BaBaAiTextViewer") {
+        if (nodeData.name === "BaBaAiTextViewer" || nodeData.name === "BaBaAiConcatTextViewer") {
             const outputWidgetName = "text_output";
             const outputWidgetId = "text_output_widget";
 
