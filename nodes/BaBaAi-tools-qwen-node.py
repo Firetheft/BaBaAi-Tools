@@ -161,7 +161,7 @@ class Qwen2_5_VLModelLoader(Qwen_VL_Model_Loader_Base):
     RETURN_TYPES = ("QWEN_VL_MODEL",)
     RETURN_NAMES = ("Qwen_VL_model",)
     FUNCTION = "load_2_5"
-    CATEGORY = "📜BaBaAi Tools"
+    CATEGORY = "📜BaBaAi Tools/Qwen提示词"
     def load_2_5(self, model, quantization, attention):
         return self.load_model(Qwen2_5_VLForConditionalGeneration, model, quantization, attention)
 
@@ -176,7 +176,7 @@ class Qwen3_VL_ModelLoader(Qwen_VL_Model_Loader_Base):
     RETURN_TYPES = ("QWEN_VL_MODEL",)
     RETURN_NAMES = ("Qwen_VL_model",)
     FUNCTION = "load_3"
-    CATEGORY = "📜BaBaAi Tools"
+    CATEGORY = "📜BaBaAi Tools/Qwen提示词"
     def load_3(self, model, quantization, attention):
         return self.load_model(Qwen3VLForConditionalGeneration, model, quantization, attention)
 
@@ -448,7 +448,7 @@ C. 剧烈的环境突变 (果)： 描述一个完全改变场景的事件，并*
     RETURN_TYPES = ("STRING",)
     RETURN_NAMES = ("text",)
     FUNCTION = "run"
-    CATEGORY = "📜BaBaAi Tools"
+    CATEGORY = "📜BaBaAi Tools/Qwen提示词"
 
     def run(self, Qwen_VL_model, system_text, preset_prompt, text, video_decode_method, max_new_tokens, temperature, top_p, top_k, min_pixels, max_pixels, total_pixels, seed, image=None, video=None):
         from qwen_vl_utils import process_vision_info
@@ -596,7 +596,7 @@ class Qwen3_Text_Run_Advanced:
     RETURN_TYPES = ("STRING", "STRING")
     RETURN_NAMES = ("text", "metrics")
     FUNCTION = "run_model"
-    CATEGORY = "📜BaBaAi Tools"
+    CATEGORY = "📜BaBaAi Tools/Qwen提示词"
 
     def run_model(self, Qwen3_model, system_text, preset_prompt, text, max_new_tokens, temperature, top_p, top_k, seed, bypass_model=False):
         if bypass_model:
@@ -644,7 +644,7 @@ class Qwen3ModelLoader:
     RETURN_TYPES = ("QWEN3_MODEL",)
     RETURN_NAMES = ("Qwen3_model",)
     FUNCTION = "load_model"
-    CATEGORY = "📜BaBaAi Tools"
+    CATEGORY = "📜BaBaAi Tools/Qwen提示词"
 
     def load_model(self, model_name, quantization, attention):
         model_id = model_name.rsplit("/", 1)[-1]

@@ -13,6 +13,7 @@ node_list = [
     "BaBaAi-tools-translate-node",
     "BaBaAi-tools-qwen-edit-text-encode-nodes",
     "BaBaAi-tools-latent-pixel-scale-node",
+    "BaBaAi-tools-wan22fmlf-nodes",
 ]
 
 NODE_CLASS_MAPPINGS = {}

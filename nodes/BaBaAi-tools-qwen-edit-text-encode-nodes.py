@@ -46,7 +46,7 @@ class TextEncodeQwenImageEditPlus_BaBaAi:
     RETURN_NAMES = ("conditioning", "image1", "image2", "image3", "image4", "image5", "latent")
     FUNCTION = "encode"
 
-    CATEGORY = "📜BaBaAi Tools"
+    CATEGORY = "📜BaBaAi Tools/QwenImageEdit文本编码器"
 
     def encode(self, clip, prompt, vae=None, 
                image1=None, image2=None, image3=None, image4=None, image5=None, 
@@ -182,7 +182,7 @@ class TextEncodeQwenImageEditPlusAdvance_BaBaAi:
     RETURN_NAMES = ("conditioning_with_full_ref", "latent", "target_image1", "target_image2", "target_image3", "vl_resized_image1", "vl_resized_image2", "vl_resized_image3", "conditioning_with_first_ref", "pad_info")
     FUNCTION = "encode"
 
-    CATEGORY = "📜BaBaAi Tools"
+    CATEGORY = "📜BaBaAi Tools/QwenImageEdit文本编码器"
 
     def encode(self, clip, prompt, vae=None, 
                vl_resize_image1=None, vl_resize_image2=None, vl_resize_image3=None,
@@ -431,7 +431,8 @@ class TextEncodeQwenImageEditPlusPro_BaBaAi:
     RETURN_NAMES = ("conditioning_with_full_ref", "latent", "image1", "image2", "image3", "image4", "image5", "conditioning_with_main_ref", "pad_info")
     FUNCTION = "encode"
 
-    CATEGORY = "📜BaBaAi Tools"
+    CATEGORY = "📜BaBaAi Tools/QwenImageEdit文本编码器"
+
     def encode(self, clip, prompt, vae=None, 
                image1=None, image2=None, image3=None,
                image4=None, image5=None, 

@@ -142,31 +142,54 @@ function createBabaColorWidget(node, inputName, inputData) {
                 node.setDirtyCanvas(true, true);
             };
 
+            let cleanedUp = false;
             const cleanup = () => {
+                if (cleanedUp) return;
+                cleanedUp = true;
+
                 picker.removeEventListener("input", onChange);
-                picker.removeEventListener("change", onChange);
-                picker.removeEventListener("blur", cleanup);
-                picker.remove();
+                picker.removeEventListener("change", onChangeAndCleanup); 
+                picker.removeEventListener("cancel", cleanup); 
+                picker.removeEventListener("blur", cleanup); 
+
+                if (picker.parentElement) {
+                    picker.parentElement.removeChild(picker);
+                }
             };
 
-            picker.addEventListener("input", onChange);
-            picker.addEventListener("change", onChange);
-            picker.addEventListener("blur", cleanup);
+            const onChangeAndCleanup = (e) => {
+                onChange(e);
+                cleanup();
+            };
+
+            picker.addEventListener("input", onChange); 
+
+            picker.addEventListener("change", onChangeAndCleanup); 
+
+            picker.addEventListener("cancel", cleanup); 
+
+            const attachBlurListener = () => {
+                if (!cleanedUp) {
+                    picker.addEventListener("blur", cleanup);
+                }
+            };
 
             document.body.appendChild(picker);
 
             setTimeout(() => {
                 try {
-                     if (typeof picker.showPicker === 'function') {
-                         picker.showPicker();
-                     } else {
-                         picker.click();
-                     }
+                    if (typeof picker.showPicker === 'function') {
+                        picker.showPicker();
+                    } else {
+                        picker.click();
+                    }
+                    picker.focus();
 
-                     picker.focus();
+                    setTimeout(attachBlurListener, 100); 
+
                 } catch (e) {
-                     console.error("Error trying to open color picker:", e);
-                     cleanup();
+                    console.error("打开颜色选择器时出错:", e);
+                    cleanup();
                 }
             }, 50);
         },
